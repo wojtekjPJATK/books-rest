@@ -1,6 +1,9 @@
 runtime: python27
 api_version: 1
 threadsafe: true
+automatic_scaling:
+  min_instances: 0
+  max_instances: 2
 
 handlers:
 - url: /static
@@ -9,7 +12,14 @@ handlers:
   script: main.app
   
 libraries:
+#- name: flask
+ # version: 0.12
+  
+- name: werkzeug
+  version: 0.11.10
+  
 - name: ssl
   version: latest
+  
 - name: enum
   version: latest
