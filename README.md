@@ -16,4 +16,4 @@ venv/Scripts/activate
 
 ## Running the Code
 
-    (venv) $ python main.py
+    (venv) $ flask run

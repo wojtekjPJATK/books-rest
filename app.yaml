@@ -6,21 +6,21 @@ automatic_scaling:
   max_instances: 2
 
 handlers:
-- url: /.*
-  script: main.app
+  - url: /.*
+    script: app.app
 
 libraries:
-- name: werkzeug
-  version: 0.11.10
-  
-- name: ssl
-  version: latest
-  
-- name: enum
-  version: latest
-  
-- name: jinja2
-  version: latest
-  
-- name: pytz
-  version: latest
+  - name: werkzeug
+    version: 0.11.10
+
+  - name: ssl
+    version: latest
+
+  - name: enum
+    version: latest
+
+  - name: jinja2
+    version: latest
+
+  - name: pytz
+    version: latest
