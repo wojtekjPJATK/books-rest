@@ -1,0 +1,16 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+service: mailer
+
+handlers:
+  - url: /.*
+    script: mailer.app
+#    login: admin
+
+libraries:
+  - name: webapp2
+    version: latest
+
+  - name: ssl
+    version: latest
