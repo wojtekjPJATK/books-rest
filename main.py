@@ -13,5 +13,4 @@ def send():
             url='/send',
             target='mailer')
 
-        self.response.write(
-            'Task {} enqueued, ETA {}.'.format(task.name, task.eta))
+        return 'Task {} enqueued, ETA {}.'.format(task.name, task.eta)
