@@ -7,7 +7,7 @@ class SendEmail(webapp2.RequestHandler):
     def post(self):
         requests.post(
             "https://api.mailgun.net/v3/sandboxf69711266f1e4f3fa5782627f0edccf8.mailgun.org/messages",
-            auth=("api", "d5dd6bdd709ceec36eb7180f6ce7377d-52cbfb43-79c6b6b8"),
+            auth=("api", "API_KEY"),
             data={"from": "Mailgun Sandbox <postmaster@sandboxf69711266f1e4f3fa5782627f0edccf8.mailgun.org>",
                   "to": "Wojciech Jarmakowski <s15983@pjwstk.edu.pl>",
                   "subject": "Hello",
