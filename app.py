@@ -1,5 +1,6 @@
 from flask import Flask
 from google.appengine.api import taskqueue
+from datetime import time
 
 app = Flask(__name__)
 
@@ -11,6 +12,8 @@ def hello():
 def send():
 	task = taskqueue.add(
             url='/send',
-            target='mailer')
+            target='mailer', 
+            queue_name='mail', 
+            countdown=360)
 
         return 'Task {} enqueued, ETA {}.'.format(task.name, task.eta)
