@@ -1,0 +1,22 @@
+<html>
+<head>
+        <link rel="stylesheet" href="pretty.css" />
+    <title>Register user</title>
+</head>
+<body>
+
+<form action="handler.jsp" method="POST">
+        <div class="container">
+    <label for="username"> Wprowadz login</label>
+    <input type="text" placeholder="username" name="usernameReg" required>
+
+    <label for="password"> Wprowadz haslo</label>
+    <input type="password" placeholder="password" name="passwordReg" required>
+
+    <input type="hidden" name="operation" value="register">
+    <input type="submit" VALUE="Register">
+    </div>
+</form>
+
+</body>
+</html>
