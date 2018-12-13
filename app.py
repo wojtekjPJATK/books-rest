@@ -1,19 +1,20 @@
 from flask import Flask
-from google.appengine.api import taskqueue
 from datetime import time
+from flask_restful import Resource, Api
+from flask_cors import CORS
+from info import Info
+from task import TaskQueue
+from login import Login
+from user import User
+import cloudstorage
+from google.appengine.api import app_identity
+
 
 app = Flask(__name__)
+api = Api(app)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
-@app.route("/")
-def hello():
-    return "Hello World!"
-    
-@app.route("/mail")
-def send():
-	task = taskqueue.add(
-            url='/send',
-            target='mailer', 
-            queue_name='mail', 
-            countdown=360)
-
-        return 'Task {} enqueued, ETA {}.'.format(task.name, task.eta)
+api.add_resource(Info, '/')
+api.add_resource(TaskQueue, '/mail')
+api.add_resource(Login, '/login')
+api.add_resource(User, '/user')
