@@ -1,14 +1,9 @@
-from st import storage
-import uuid 
-from flask import current_app
-from google.cloud import datastore
+from google.appengine.ext import ndb
 
-client = datastore.Client()
 
-def getUser(self, username):
-    ds = get_client()
-    query = ds.query(kind = 'User')
-    query.add_filter('username', '=', username)
-    result = list(query.fetch())
-
-    return result
+class User(ndb.Model):
+    username = nbd.StringProperty();
+    
+def getUser(self, admin):
+    user = User(username="adam")
+    user.put()
