@@ -6,6 +6,9 @@ from info import Info
 from task import TaskQueue
 from login import Login
 from user import User
+import cloudstorage
+from google.appengine.api import app_identity
+
 
 app = Flask(__name__)
 api = Api(app)
