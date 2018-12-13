@@ -24,3 +24,6 @@ libraries:
 
   - name: pytz
     version: latest
+    
+  - name: six
+    version: latest

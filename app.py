@@ -5,6 +5,7 @@ from flask_cors import CORS
 from info import Info
 from task import TaskQueue
 from login import Login
+from user import User
 
 app = Flask(__name__)
 api = Api(app)

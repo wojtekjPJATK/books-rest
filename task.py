@@ -1,4 +1,5 @@
 from google.appengine.api import taskqueue
+from flask_restful import Resource
 
 
 class TaskQueue(Resource):
