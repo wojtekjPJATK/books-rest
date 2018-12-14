@@ -1,26 +1,29 @@
 import model_datastore
 from flask import Flask, request, jsonify, session, abort
-
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 model = model_datastore
 
-
-@app.route("/signin", methods = 'POST')
+@app.route("/signin", methods = ['POST'])
 def signin():
         content = request.get_json()
+        if content is None:
+                return jsonify(msg = "No JSON for me huh?")
         if model.isCorrectUser(content['login'], content['password']):
                 model.destroyAllUserSessions(content['login'])
-                session = model.createSession(content['login'])
-                session['uuid'] = session['sessionID']
-                return jsonify(session['uuid'])
+                my_session = model.createSession(content['login'])
+                return jsonify(id = my_session['sessionID'])
         else:
                 return jsonify(msg = "Wrong username or password")
 
 @app.route("/join", methods = [ 'POST' ])
 def join():
         content = request.get_json()
+        if content is None:
+                return jsonify(msg = "No JSON for me huh?")
         if not model.isUserInDB(content['login']):
                 data = {}
                 data['username'] = content['login']
@@ -28,23 +31,32 @@ def join():
                 data['security_lvl'] = 'normal'
                 data['favBooks'] = None
                 model.create(data)
-                session = model.createSession(content['username'])
-                session['uuid'] = session['sessionID']
-                return jsonify(session['uuid'])
+                my_session = model.createSession(content['login'])
+                return jsonify(id = my_session['sessionID'])
         else:
                 return jsonify(msg = "User alredy exists")
 
 @app.route("/book", methods = [ 'GET', 'POST'])
 def books():
-        if 'uuid' not in session:
+        uuid = None
+        if 'Authorization' not in request.headers:
                 return abort(401)
-        uuid = session['uuid']
+        uuid = request.headers.get('Authorization')
+        if uuid is None:
+                return abort(401)
+        if not model.checkIfSessionActive(uuid):
+                return abort(401)
         username = model.getUsernameFromSession(uuid)
-        user = model.getUser(username)            
+        user = model.getUser(username) 
+        if user is None:
+                return jsonify(msg = "something went wrong")                   
         if request.method == 'GET':
                 books = model.BookList()
-                favBooks = list((user['favBooks']))
-                return jsonify(books, favBooks)
+                if user['favBooks'] is not None:
+                        favBooks = list((user['favBooks']))
+                else: 
+                        favBooks = None
+                return jsonify(books = books, favBooks = favBooks)
         else:
                 content  = request.get_json()
                 if not model.checkIfBookExists(content['author'], content['title']):
@@ -52,26 +64,31 @@ def books():
                         image_url = model.upload_image_file(img)
                         data = {}
                         data['title'] = content['title']
-                        data['author'] = content['author']
+                        data['author'] = list(content['author'])
                         data['description'] = content['description']
                         data['imageUrl'] = image_url
                         data['addedBy'] = user['id']
                         book = model.createBook(data)
-                        return jsonify(book)
+                        return jsonify(book = book)
                 else:
                         return jsonify(msg = "Book already exists")
 
-@app.route("/book/id", methods = ['GET', 'PATCH', 'DELETE'])
-def book():
-        if 'uuid' not in session:
+@app.route("/book/<id>", methods = ['GET', 'PATCH', 'DELETE'])
+def book(id):
+        uuid = None
+        if 'Authorization' not in request.headers:
                 return abort(401)
-        id = request.args.get('id')
+        uuid = request.headers.get('Authorization')
+        if uuid is None:
+                return abort(401)
+        if not model.checkIfSessionActive(uuid):
+                return abort(401)
         if id is None:
                 return jsonify(msg = 'Forgot id')
         if request.method == 'GET':
                 book = model.BookRead(id)
                 if book is not None:
-                        return jsonify(book)
+                        return jsonify(book = book)
                 else:
                         return jsonify(msg = "No book with this id")
 
@@ -86,7 +103,7 @@ def book():
                         if 'description' in content:
                                 book['description'] = content['description']
                         book = model.BookUpdate(book, id)
-                        return jsonify(book)
+                        return jsonify(book = book)
                 else:
                         return jsonify(msg = "No book with this id")
         else:
@@ -95,11 +112,17 @@ def book():
 
 @app.route("/author", methods = ['GET', 'POST'])
 def authors():
-        if 'uuid' not in session:
-                return abort(401)        
+        uuid = None
+        if 'Authorization' not in request.headers:
+                return abort(401)
+        uuid = request.headers.get('Authorization')
+        if uuid is None:
+                return abort(401)    
+        if not model.checkIfSessionActive(uuid):
+                return abort(401)  
         if request.method == 'GET':
                 authors = model.AuthorList()
-                return jsonify(authors)
+                return jsonify(authors = authors)
         else:
                 content = request.get_json()
                 if not model.isAuthorInDB(content['firstName'], content['lastName']):
@@ -107,15 +130,20 @@ def authors():
                         data['firstName'] = content['firstName']
                         data['lastName'] = content['lastName']
                         author = model.createAuthor(data)
-                        return jsonify(author)
+                        return jsonify(author = author)
                 else:
                         return jsonify(msg = "Author already in database")
 
-@app.route("/author/id", methods = [ 'PATCH', 'DELETE'])
-def author():
-        if 'uuid' not in session:
-                return abort(401)        
-        id = request.args.get('id')
+@app.route("/author/<id>", methods = [ 'PATCH', 'DELETE'])
+def author(id):
+        uuid = None
+        if 'Authorization' not in request.headers:
+                return abort(401)
+        uuid = request.headers.get('Authorization')
+        if uuid is None:
+                return abort(401) 
+        if not model.checkIfSessionActive(uuid):
+                return abort(401)     
         if id is None:
                 return jsonify(msg = 'Forgot id')
         if request.method == 'PATCH':
@@ -127,21 +155,25 @@ def author():
                         if 'lastName' in content:
                                 author['lastName'] = content['lastName']
                         author = model.AuthorUpdate(author,id)
-                        return jsonify(author)
+                        return jsonify(author = author)
                 else:
                         return jsonify(msg = "No author with this id")
         else:
                 model.AuthorDelete(id) 
                 return jsonify(msg = "Deleted")
 
-@app.route("/favorites/id", methods = ['POST'])
-def favBooks():
-        if 'uuid' not in session:
-                return abort(401)        
-        id = request.args.get('id')
+@app.route("/favorites/<id>", methods = ['POST'])
+def favBooks(id):
+        uuid = None
+        if 'Authorization' not in request.headers:
+                return abort(401)
+        uuid = request.headers.get('Authorization')
+        if uuid is None:
+                return abort(401)
+        if not model.checkIfSessionActive(uuid):
+                return abort(401)  
         if id is None:
                 return jsonify(msg = 'Forgot id')
-        uuid = session['uuid']
         username = model.getUsernameFromSession(uuid)
         user = model.getUser(username) 
         favBooks = user['favBooks']
@@ -155,22 +187,28 @@ def favBooks():
         
         user['favBooks'] = favBooks        
         user = model.UserUpdate(user, user['id'])
-        return jsonify(user['favBooks'])
+        return jsonify(favBooks = user['favBooks'])
 
 @app.route("/session/id", methods = [ 'GET' , 'DELETE' ])
 def sessions():
+        uuid = None
+        if 'Authorization' not in request.headers:
+                return abort(401)
+        uuid = request.headers.get('Authorization')
+        if uuid is None:
+                return abort(401)
+        if not model.checkIfSessionActive(uuid):
+                return abort(401)
         if request.method == 'GET':
-                if 'uuid' not in session:
-                        return jsonify(False)
-                uuid = session['uuid']
+                if not model.checkIfSessionActive(uuid):
+                        return jsonify(session = False)
                 username = model.getUsernameFromSession(uuid)
                 user = model.getUser(username) 
-                return jsonify(user)
+                return jsonify(user = user)
         else:
-                if 'uuid' not in session:
+                if not model.checkIfSessionActive(uuid):
                         return abort(401)
-                model.destroySession(session['uuid'])
-                session.pop('uuid', None)
+                model.destroySession(uuid)
                 return jsonify(msg = "Deleted")
 
 @app.errorhandler(401)

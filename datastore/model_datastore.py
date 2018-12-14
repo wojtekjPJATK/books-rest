@@ -183,7 +183,10 @@ def getUser(username):
     query = ds.query(kind = 'User')
     query.add_filter('username', '=', username)
     result = list(query.fetch())
-    return from_datastore(result[0])
+    if result is None:
+        return None
+    for r in result:
+        from_datastore(r) 
 
 def UserRead(id):
     ds = get_client()
@@ -197,7 +200,6 @@ def UserUpdate(data, id=None):
         key = ds.key('User', int(id))
     else:
         key = ds.key('User')
-
     entity = datastore.Entity(
         key=key,
         )
@@ -288,5 +290,5 @@ def getUsernameFromSession(uuid):
     if result is None:
         return None
     else:
-        r = from_datastore(result[0])
-        return r['user']
+        for r in result:
+            return r['user']
