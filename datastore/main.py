@@ -49,7 +49,7 @@ def books():
         username = model.getUsernameFromSession(uuid)
         user = model.getUser(username) 
         if user is None:
-                return jsonify(msg = "something went wrong")                   
+                return jsonify(msg = "Something went horribly wrong")                   
         if request.method == 'GET':
                 books = model.BookList()
                 if user['favBooks'] is not None:

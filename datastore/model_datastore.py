@@ -185,8 +185,8 @@ def getUser(username):
     result = list(query.fetch())
     if result is None:
         return None
-    for r in result:
-        from_datastore(r) 
+    r= result.pop()
+    return from_datastore(r) 
 
 def UserRead(id):
     ds = get_client()
@@ -290,5 +290,5 @@ def getUsernameFromSession(uuid):
     if result is None:
         return None
     else:
-        for r in result:
-            return r['user']
+        r = result.pop()
+        return r['user']
