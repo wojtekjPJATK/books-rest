@@ -12,9 +12,9 @@ def signin():
         content = request.get_json()
         if content is None:
                 return jsonify(msg = "No JSON for me huh?")
-        if model.isCorrectUser(content['login'], content['password']):
-                model.destroyAllUserSessions(content['login'])
-                my_session = model.createSession(content['login'])
+        if model.isCorrectUser(content['login'].strip(), content['password'].strip()):
+                model.destroyAllUserSessions(content['login'].strip())
+                my_session = model.createSession(content['login'].strip())
                 return jsonify(id = my_session['sessionID'])
         else:
                 return jsonify(msg = "Wrong username or password")
@@ -24,10 +24,10 @@ def join():
         content = request.get_json()
         if content is None:
                 return jsonify(msg = "No JSON for me huh?")
-        if not model.isUserInDB(content['login']):
+        if not model.isUserInDB(content['login'].strip()):
                 data = {}
-                data['username'] = content['login']
-                data['password'] = content['password']
+                data['username'] = content['login'].strip()
+                data['password'] = content['password'].strip()
                 data['security_lvl'] = 'normal'
                 data['favBooks'] = None
                 model.create(data)
@@ -55,17 +55,17 @@ def books():
                 if user['favBooks'] is not None:
                         favBooks = list((user['favBooks']))
                 else: 
-                        favBooks = None
+                        favBooks = []
                 return jsonify(books = books, favBooks = favBooks)
         else:
                 content  = request.get_json()
-                if not model.checkIfBookExists(content['author'], content['title']):
+                if not model.checkIfBookExists(content['author'], content['title'].strip()):
                         img = request.files.get('image')            
                         image_url = model.upload_image_file(img)
                         data = {}
-                        data['title'] = content['title']
+                        data['title'] = content['title'].strip()
                         data['author'] = list(content['author'])
-                        data['description'] = content['description']
+                        data['description'] = content['description'].strip()
                         data['imageUrl'] = image_url
                         data['addedBy'] = user['id']
                         book = model.createBook(data)
@@ -97,11 +97,11 @@ def book(id):
                 if book is not None:
                         content = request.get_json()
                         if 'title' in content:
-                                book['title'] = content['title']
+                                book['title'] = content['title'].strip()
                         if 'author' in content:        
-                                book['author'] = content['author']
+                                book['author'] = list(content['author'])
                         if 'description' in content:
-                                book['description'] = content['description']
+                                book['description'] = content['description'].strip()
                         book = model.BookUpdate(book, id)
                         return jsonify(book = book)
                 else:
@@ -125,10 +125,10 @@ def authors():
                 return jsonify(authors = authors)
         else:
                 content = request.get_json()
-                if not model.isAuthorInDB(content['firstName'], content['lastName']):
+                if not model.isAuthorInDB(content['firstName'].strip(), content['lastName'].strip()):
                         data = {}
-                        data['firstName'] = content['firstName']
-                        data['lastName'] = content['lastName']
+                        data['firstName'] = content['firstName'].strip()
+                        data['lastName'] = content['lastName'].strip()
                         author = model.createAuthor(data)
                         return jsonify(author = author)
                 else:
@@ -151,9 +151,9 @@ def author(id):
                 if author is not None:
                         content = request.get_json()
                         if 'firstName' in content:
-                                author['firstName'] = content['firstName']
+                                author['firstName'] = content['firstName'].strip()
                         if 'lastName' in content:
-                                author['lastName'] = content['lastName']
+                                author['lastName'] = content['lastName'].strip()
                         author = model.AuthorUpdate(author,id)
                         return jsonify(author = author)
                 else:
@@ -189,8 +189,8 @@ def favBooks(id):
         user = model.UserUpdate(user, user['id'])
         return jsonify(favBooks = user['favBooks'])
 
-@app.route("/session/id", methods = [ 'GET' , 'DELETE' ])
-def sessions():
+@app.route("/session/<id>", methods = [ 'GET' , 'DELETE' ])
+def sessions(id):
         uuid = None
         if 'Authorization' not in request.headers:
                 return abort(401)

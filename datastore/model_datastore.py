@@ -82,6 +82,7 @@ def upload_image_file(file):
 
     return public_url
 
+# do usunięcia prawdopodobnie
 def getBookByTitle(title):
     ds = get_client()
     query = ds.query(kind = 'Book')
@@ -93,6 +94,7 @@ def getBookByTitle(title):
     
     return results
 
+# do usunięcia prawdopodobnie
 def getBookByAuthor(author):
     ds = get_client()
     query = ds.query(kind = 'Book')
