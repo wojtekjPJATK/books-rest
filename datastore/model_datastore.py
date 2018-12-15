@@ -104,6 +104,26 @@ def getBookByAuthor(author):
     
     return results
 
+# search barbaric style 
+def findBookByAnything(string):
+    ds = get_client()
+    query = ds.query(kind = 'Book')
+    books = query.fetch()
+    results = []
+    string = string.lower()
+    for book in books:
+        if string in book['title'].lower():
+            results.append(from_datastore(book))
+        elif string in book['description'].lower():
+            results.append(from_datastore(book))
+        else:
+            for author in book['author']:
+                if string in author.lower():
+                    results.append(from_datastore(book))
+                    break
+    return results              
+        
+
 def checkIfBookExists(title, author):
     ds = get_client()
     query = ds.query(kind = 'Book')
@@ -111,6 +131,8 @@ def checkIfBookExists(title, author):
     query.add_filter('Title', '=', title)
     results = list(query.fetch(1))
     if results is None:
+        return False
+    elif not results:
         return False
     else:
         return True
@@ -183,9 +205,12 @@ def getUser(username):
     query = ds.query(kind = 'User')
     query.add_filter('username', '=', username)
     result = list(query.fetch())
+    
     if result is None:
         return None
-    r= result.pop()
+    elif not result:
+        return None
+    r = result.pop()
     return from_datastore(r) 
 
 def UserRead(id):
@@ -276,8 +301,10 @@ def checkIfSessionActive(uuid):
     query = ds.query(kind = 'Session')
     query.add_filter('sessionID', '=', uuid)
     query.add_filter('status', '=', 'active')
-    result = query.fetch(1)
+    result = list(query.fetch())
     if result is None:
+        return False
+    elif not result:
         return False
     else:
         return True
@@ -288,6 +315,8 @@ def getUsernameFromSession(uuid):
     query.add_filter('sessionID', '=', uuid)
     result = list(query.fetch())
     if result is None:
+        return None
+    elif not result:
         return None
     else:
         r = result.pop()

@@ -117,9 +117,9 @@ def authors():
                 return abort(401)
         uuid = request.headers.get('Authorization')
         if uuid is None:
-                return abort(401)    
+                return abort(401) 
         if not model.checkIfSessionActive(uuid):
-                return abort(401)  
+                return abort(401)
         if request.method == 'GET':
                 authors = model.AuthorList()
                 return jsonify(authors = authors)
@@ -210,6 +210,10 @@ def sessions():
                         return abort(401)
                 model.destroySession(uuid)
                 return jsonify(msg = "Deleted")
+
+
+
+  
 
 @app.errorhandler(401)
 def session_not_found(e):
