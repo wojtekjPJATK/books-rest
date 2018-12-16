@@ -103,5 +103,3 @@ def pubsub_complete():
     subscriber.subscribe(subscription_path, callback=callback)
 
     print('\nListening for messages on {}...\n'.format(subscription_path))
-
-    # [END pubsub_end_to_end]
