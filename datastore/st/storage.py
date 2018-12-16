@@ -69,10 +69,12 @@ def upload_file(file_stream, filename, content_type):
     data = data.encode('utf-8')
     message_future = publisher.publish(topic_path, data=data)
     message_future.add_done_callback(callback)
-    # We must keep the main thread from exiting to allow it to process
-    # messages in the background.
-    while True:
-        time.sleep(60)
+
+    #receive message
+    def callback(message):
+        print(message.data)
+        message.ack()
+
 
 
     return url
