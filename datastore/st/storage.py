@@ -50,22 +50,25 @@ def upload_file(file_stream, filename, content_type):
 
     _check_extension(filename, ['png', 'jpg', 'jpeg', 'gif'])
     filename = _safe_filename(filename)
+    filesize = os.path.getsize(file_stream)
 
-    client = _get_storage_client()
-    bucket = client.bucket('solwit-pjatk-bookshelf')
-    blob = bucket.blob(filename)
+    if filesize <= 10 000 000: 
 
-    blob.upload_from_string(
-        file_stream,
-        content_type=content_type)
+        client = _get_storage_client()
+        bucket = client.bucket('solwit-pjatk-bookshelf')
+        blob = bucket.blob(filename)
 
-    url = blob.public_url
+        blob.upload_from_string(
+          file_stream,
+         content_type=content_type)
 
-    if isinstance(url, six.binary_type):
-        url = url.decode('utf-8')
+        url = blob.public_url
 
+        if isinstance(url, six.binary_type):
+         url = url.decode('utf-8')
+    elif:
     #pubsub message
-    data = u'Storing a cover ended successfully'
+    data = u'File size is above 10MB'
     data = data.encode('utf-8')
     message_future = publisher.publish(topic_path, data=data)
     message_future.add_done_callback(callback)
