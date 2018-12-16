@@ -1,4 +1,4 @@
 # books-rest back-end
 
-Deploy
+Deploy:
 gcloud deploy app -v 2 --no-promote
