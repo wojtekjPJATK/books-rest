@@ -1,9 +1,16 @@
 from google.appengine.ext import ndb
+import json
 
 
-class User(ndb.Model):
-    username = nbd.StringProperty();
-    
-def getUser(self, admin):
-    user = User(username="adam")
-    user.put()
+class UserTest(ndb.Model):
+    username = ndb.StringProperty()
+    password = ndb.StringProperty()
+
+
+def postUser():
+    user = UserTest()
+    user.username = "Adam22"
+    user.password = 'admin'
+    key = user.put()
+    id = key.id()
+    return {'username': user.username, 'id': id}
