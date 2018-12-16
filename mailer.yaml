@@ -6,7 +6,7 @@ service: mailer
 handlers:
   - url: /.*
     script: mailer.app
-#    login: admin
+    login: admin
 
 libraries:
   - name: webapp2
