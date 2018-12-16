@@ -24,7 +24,12 @@ def join():
         content = request.get_json()
         if content is None:
                 return jsonify(msg = "No JSON for me huh?")
-        if not model.isUserInDB(content['login'].strip()):
+        elif content.get('login') is None:
+                return jsonify(msg = "Forgot my login")
+        username = content['login'].strip()
+        if not username:
+                return jsonify(msg = "Forgot my login")
+        if not model.isUserInDB(username):
                 data = {}
                 data['username'] = content['login'].strip()
                 data['password'] = content['password'].strip()
@@ -35,6 +40,32 @@ def join():
                 return jsonify(id = my_session['sessionID'])
         else:
                 return jsonify(msg = "User alredy exists")
+
+@app.route("/oauth", methods = [ "POST" ])
+def oauth():
+        content = request.get_json()
+        if content is None:
+                return jsonify(msg = "Forgot my email")
+        elif content.get('email') is None:
+                return jsonify(msg = "Forgot my email")
+        username = content['email'].strip()
+        if not username:
+                return jsonify(msg = "Forgot my email")
+        if model.isUserInDB(username):
+                model.destroyAllUserSessions(username)
+                my_session = model.createSession(username)
+        else:
+                data = {}
+                data['username'] = username
+                data['password'] = None
+                data['security_lvl'] = 'normal'
+                data['favBooks'] = None
+                data['origin'] = 'google'
+                model.create(data)
+                my_session = model.createSession(username)
+        
+        return jsonify(id = my_session['sessionID'])
+
 
 @app.route("/book", methods = [ 'GET', 'POST'])
 def books():
@@ -203,6 +234,8 @@ def favBooks(id):
                 favBooks.append(id)
         elif id in favBooks:
                 favBooks.remove(id)
+                if not favBooks:
+                        favBooks = None
         else:
                 favBooks.append(id)
         
