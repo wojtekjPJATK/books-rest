@@ -6,7 +6,6 @@ class UserTest(ndb.Model):
     username = ndb.StringProperty()
     password = ndb.StringProperty()
 
-
 class Message(ndb.Model):
     text = ndb.StringProperty()
     msg = ndb.StringProperty()
@@ -19,7 +18,6 @@ def postMessage(data, content):
     key = message.put()
     id = key.id()
     return id
-
 
 def postUser():
     user = UserTest()

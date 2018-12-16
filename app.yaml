@@ -8,6 +8,10 @@ automatic_scaling:
 handlers:
   - url: /.*
     script: app.app
+    
+  - url: /_ah/push-handlers/.*
+    script: app.app
+    login: admin
 
   - url: /_ah/push-handlers/.*
     script: app.app

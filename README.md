@@ -1,19 +1,7 @@
+## Bookshelf backend
+
+Application is built to run on Google AppEngine standard environment. It's addition to existing REST API. You can find here basic examples of TaskQueue, PubSub implementations and Datastore connection.
+
 ## Installation
 
-You can create a virtual environment and install the required packages with the following commands:
-
-    $ virtualenv venv
-    $ . venv/bin/activate
-    (venv) \$ pip install -r requirements.txt
-
-or for Windows:
-
-```
-virtualenv venv
-venv/Scripts/activate
-(venv) \$ pip install -r requirements.txt
-```
-
-## Running the Code
-
-    (venv) $ flask run
+Need GoogleCloud service to run properly. Should be deployed on GAE standard env.
