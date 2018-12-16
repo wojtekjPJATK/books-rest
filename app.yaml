@@ -8,7 +8,7 @@ automatic_scaling:
 handlers:
   - url: /.*
     script: app.app
-    
+
   - url: /_ah/push-handlers/.*
     script: app.app
     login: admin
@@ -28,6 +28,6 @@ libraries:
 
   - name: pytz
     version: latest
-    
+
   - name: six
     version: latest
