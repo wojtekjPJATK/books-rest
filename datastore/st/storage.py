@@ -11,21 +11,6 @@ from werkzeug.exceptions import BadRequest
 from google.cloud import pubsub_v1
 
 
-project_id = "solwit-pjatk-arc-2018-gr4"
-topic_name = "projects/solwit-pjatk-arc-2018-gr4/topics/covers"
-
-publisher = pubsub_v1.PublisherClient()
-topic_path = publisher.topic_path(project_id, topic_name)
-
-def callback(message_future):
-    # When timeout is unspecified, the exception method waits indefinitely.
-    if message_future.exception(timeout=30):
-        print('Publishing message on {} threw an Exception {}.'.format(
-            topic_name, message_future.exception()))
-    else:
-        print(message_future.result())
-
-
 
 def _get_storage_client():
     return storage.Client(
@@ -66,18 +51,57 @@ def upload_file(file_stream, filename, content_type):
 
         if isinstance(url, six.binary_type):
          url = url.decode('utf-8')
-    elif:
-    #pubsub message
-    data = u'File size is above 10MB'
-    data = data.encode('utf-8')
-    message_future = publisher.publish(topic_path, data=data)
-    message_future.add_done_callback(callback)
 
-    #receive message
-    def callback(message):
-        print(message.data)
-        message.ack()
-
-
+    else:
+    pubsub_complete()
 
     return url
+
+#initialise pubsub and send message
+def pubsub_complete():
+    
+    
+    project_id = "solwit-pjatk-arc-2018-gr4"
+    topic_name = "projects/solwit-pjatk-arc-2018-gr4/topics/bookcovers"
+    subscription_name = "bookcover"
+
+    # Instantiates a publisher and subscriber client
+    publisher = pubsub_v1.PublisherClient()
+    subscriber = pubsub_v1.SubscriberClient()
+
+    # The `topic_path` method creates a fully qualified identifier
+    # in the form `projects/{project_id}/topics/{topic_name}`
+    topic_path = subscriber.topic_path(project_id, topic_name)
+
+    # The `subscription_path` method creates a fully qualified identifier
+    # in the form `projects/{project_id}/subscriptions/{subscription_name}`
+    subscription_path = subscriber.subscription_path(
+        project_id, subscription_name)
+
+    # Create the topic.
+    topic = publisher.create_topic(topic_path)
+    print('\nTopic created: {}'.format(topic.name))
+
+    # Create a subscription.
+    subscription = subscriber.create_subscription(
+        subscription_path, topic_path)
+    print('\nSubscription created: {}\n'.format(subscription.name))
+
+    # Publish message.
+    data = u'File size is above 10MB'
+    # Data must be a bytestring
+    data = data.encode('utf-8')
+    # When you publish a message, the client returns a future.
+    future = publisher.publish(topic_path, data=data)
+
+    def callback(message):
+        message.ack()
+        messages.add(message)
+
+
+    # Receive messages. The subscriber is nonblocking.
+    subscriber.subscribe(subscription_path, callback=callback)
+
+    print('\nListening for messages on {}...\n'.format(subscription_path))
+
+    # [END pubsub_end_to_end]

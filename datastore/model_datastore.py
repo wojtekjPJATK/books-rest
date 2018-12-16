@@ -2,7 +2,6 @@ from st import storage
 import uuid 
 from flask import current_app
 from google.cloud import datastore
-from google.cloud import pubsub_v1
 
 builtin_list = list
 
@@ -268,26 +267,6 @@ def isCorrectUser(username, password):
 
 def createSession(username):
 
-    #subscribe to pubsub
-    subscriber = pubsub_v1.SubscriberClient()
-    topic_name = 'projects/solwit-pjatk-arc-2018-gr4/topics/covers'.format(
-        project_id=os.getenv('GOOGLE_CLOUD_PROJECT'),
-        topic='covers',
-    )
-    subscription_name = 'projects/solwit-pjatk-arc-2018-gr4/subscriptions/{username}'.format(
-        project_id=os.getenv('GOOGLE_CLOUD_PROJECT'),
-        sub='{username}', 
-    )
-    subscriber.create_subscription(
-        name=subscription_name, topic=topic_name)
-
-    def callback(message):
-        print(message.data)
-        message.ack()
-
-    future = subscriber.subscribe(subscription_name, callback)
-    #end subscribe
-    
     ds = get_client()
     key = ds.key('Session')
     entity = datastore.Entity(key=key)
@@ -299,20 +278,8 @@ def createSession(username):
     ds.put(entity)
     return entity
 
-def destroySession(uuid, username):
+def destroySession(uuid):
 
-    #delete pubsub subscription
-    project_id = "solwit-pjatk-arc-2018-gr4"
-    subscription_name = "projects/solwit-pjatk-arc-2018-gr4/subscriptions/{username}"
-
-    subscriber = pubsub_v1.SubscriberClient()
-    subscription_path = subscriber.subscription_path(
-        project_id, subscription_name)
-
-    subscriber.delete_subscription(subscription_path)
-
-    print('Subscription deleted: {}'.format(subscription_path))
-    
     ds = get_client()
     query = ds.query(kind = 'Session')
     query.add_filter('sessionID', '=', uuid)
