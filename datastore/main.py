@@ -60,18 +60,39 @@ def books():
         else:
                 content  = request.get_json()
                 if not model.checkIfBookExists(content['author'], content['title'].strip()):
-                        img = request.files.get('image')            
-                        image_url = model.upload_image_file(img)
+                        #img = request.files.get('image')          
+                        #image_url = model.upload_image_file(img)
                         data = {}
                         data['title'] = content['title'].strip()
                         data['author'] = list(content['author'])
-                        data['description'] = content['description'].strip()
-                        data['imageUrl'] = image_url
+                        data['description'] = content.get('description')
+                        data['imageUrl'] = None 
                         data['addedBy'] = user['id']
                         book = model.createBook(data)
                         return jsonify(book = book)
                 else:
                         return jsonify(msg = "Book already exists")
+
+@app.route("/cover/<id>", methods = ['POST'])
+def getCover(id):
+        uuid = None
+        if 'Authorization' not in request.headers:
+                return abort(401)
+        uuid = request.headers.get('Authorization')
+        if uuid is None:
+                return abort(401)
+        if not model.checkIfSessionActive(uuid):
+                return abort(401)
+        if id is None:
+                return jsonify(msg = 'Forgot id')        
+        book = model.BookRead(id)
+        if book is None:
+                return jsonify(msg = "No book with this id")
+        img = request.files.get('image')
+        image_url = model.upload_image_file(img)
+        book['imageUrl'] = image_url
+        book = model.BookUpdate(book, id)
+        return jsonify(book = book)
 
 @app.route("/book/<id>", methods = ['GET', 'PATCH', 'DELETE'])
 def book(id):
@@ -101,7 +122,7 @@ def book(id):
                         if 'author' in content:        
                                 book['author'] = list(content['author'])
                         if 'description' in content:
-                                book['description'] = content['description'].strip()
+                                book['description'] = content.get('description')
                         book = model.BookUpdate(book, id)
                         return jsonify(book = book)
                 else:
@@ -202,15 +223,16 @@ def sessions(id):
         if request.method == 'GET':
                 if not model.checkIfSessionActive(uuid):
                         return jsonify(session = False)
-                username = model.getUsernameFromSession(uuid)
-                user = model.getUser(username) 
-                return jsonify(user = user)
+                else:
+                        return jsonify(session = True)
+                #username = model.getUsernameFromSession(uuid)
+                #user = model.getUser(username) 
+                #return jsonify(user = user)
         else:
                 if not model.checkIfSessionActive(uuid):
                         return abort(401)
                 model.destroySession(uuid)
                 return jsonify(msg = "Deleted")
-
 
 
   

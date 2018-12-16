@@ -126,12 +126,13 @@ def findBookByAnything(string):
     return results              
         
 
-def checkIfBookExists(title, author):
+def checkIfBookExists(author, title):
     ds = get_client()
     query = ds.query(kind = 'Book')
-    query.add_filter('Author', '=', author)
-    query.add_filter('Title', '=', title)
-    results = list(query.fetch(1))
+    #query.add_filter('author', '=', author)
+    query.add_filter('title', '=', title)
+    results = list(query.fetch())
+
     if results is None:
         return False
     elif not results:
@@ -283,9 +284,11 @@ def destroySession(uuid):
     ds = get_client()
     query = ds.query(kind = 'Session')
     query.add_filter('sessionID', '=', uuid)
-    result = from_datastore(query.fetch(1))
-    key = ds.key('Session', int(result['id']))
-    ds.delete(key)
+    results = list(query.fetch())
+    for result in results:
+        r = from_datastore(result)
+        key = ds.key('Session', int(r['id']))
+        ds.delete(key)
 
 def destroyAllUserSessions(username):
     ds = get_client()
