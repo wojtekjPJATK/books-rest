@@ -208,7 +208,8 @@ def sessions(id):
         else:
                 if not model.checkIfSessionActive(uuid):
                         return abort(401)
-                model.destroySession(uuid)
+                username = model.getUsernameFromSession(uuid)        
+                model.destroySession(uuid, username)
                 return jsonify(msg = "Deleted")
 
 
