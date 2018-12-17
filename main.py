@@ -254,7 +254,7 @@ def sessions(id):
         if not model.checkIfSessionActive(uuid):
                 return abort(401)
         if request.method == 'GET':
-                if not model.checkIfSessionActive(uuid):
+                if not model.checkIfSessionActive(id):
                         return jsonify(session = False)
                 else:
                         return jsonify(session = True)
@@ -262,13 +262,29 @@ def sessions(id):
                 #user = model.getUser(username) 
                 #return jsonify(user = user)
         else:
-                if not model.checkIfSessionActive(uuid):
+                if not model.checkIfSessionActive(id):
                         return abort(401)
                 model.destroySession(uuid)
                 return jsonify(msg = "Deleted")
 
 
-  
+#barbaric search
+@app.route("/searchBook/<text>", methods = [ 'POST' ] )
+def searchBook(text):
+        uuid = None
+        if 'Authorization' not in request.headers:
+                return abort(401)
+        uuid = request.headers.get('Authorization')
+        if uuid is None:
+                return abort(401)
+        if not model.checkIfSessionActive(uuid):
+                return abort(401)
+        if text is None:
+                return jsonify(msg = "No search query")
+        if not text:
+                return jsonify(msg = "No search query")
+        books = model.findBookByAnything(text)
+        return jsonify(books = books)        
 
 @app.errorhandler(401)
 def session_not_found(e):
