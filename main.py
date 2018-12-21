@@ -17,18 +17,18 @@ def signin():
                 my_session = model.createSession(content['login'].strip())
                 return jsonify(id = my_session['sessionID'])
         else:
-                return jsonify(msg = "Wrong username or password")
+                return jsonify(msg = "Wrong username or password"),403
 
 @app.route("/join", methods = [ 'POST' ])
 def join():
         content = request.get_json()
         if content is None:
-                return jsonify(msg = "No JSON for me huh?")
+                return jsonify(msg = "No JSON for me huh?"), 403
         elif content.get('login') is None:
-                return jsonify(msg = "Forgot my login")
+                return jsonify(msg = "Forgot my login"),403
         username = content['login'].strip()
         if not username:
-                return jsonify(msg = "Forgot my login")
+                return jsonify(msg = "Forgot my login"), 403
         if not model.isUserInDB(username):
                 data = {}
                 data['username'] = content['login'].strip()
@@ -39,18 +39,18 @@ def join():
                 my_session = model.createSession(content['login'])
                 return jsonify(id = my_session['sessionID'])
         else:
-                return jsonify(msg = "User alredy exists")
+                return jsonify(msg = "User alredy exists"), 403
 
 @app.route("/oauth", methods = [ "POST" ])
 def oauth():
         content = request.get_json()
         if content is None:
-                return jsonify(msg = "Forgot my email")
+                return jsonify(msg = "Forgot my email"), 403
         elif content.get('email') is None:
-                return jsonify(msg = "Forgot my email")
+                return jsonify(msg = "Forgot my email"), 403
         username = content['email'].strip()
         if not username:
-                return jsonify(msg = "Forgot my email")
+                return jsonify(msg = "Forgot my email"), 403
         if model.isUserInDB(username):
                 model.destroyAllUserSessions(username)
                 my_session = model.createSession(username)
@@ -80,7 +80,7 @@ def books():
         username = model.getUsernameFromSession(uuid)
         user = model.getUser(username) 
         if user is None:
-                return jsonify(msg = "Something went horribly wrong")                   
+                return jsonify(msg = "Something went horribly wrong"), 403                   
         if request.method == 'GET':
                 books = model.BookList()
                 if user['favBooks'] is not None:
@@ -102,7 +102,7 @@ def books():
                         book = model.createBook(data)
                         return jsonify(book = book)
                 else:
-                        return jsonify(msg = "Book already exists")
+                        return jsonify(msg = "Book already exists"), 403
 
 @app.route("/cover/<id>", methods = ['POST'])
 def getCover(id):
@@ -118,7 +118,7 @@ def getCover(id):
                 return jsonify(msg = 'Forgot id')        
         book = model.BookRead(id)
         if book is None:
-                return jsonify(msg = "No book with this id")
+                return jsonify(msg = "No book with this id"), 403
         img = request.files.get('image')
         image_url = model.upload_image_file(img)
         book['imageUrl'] = image_url
@@ -136,13 +136,13 @@ def book(id):
         if not model.checkIfSessionActive(uuid):
                 return abort(401)
         if id is None:
-                return jsonify(msg = 'Forgot id')
+                return jsonify(msg = 'Forgot id'), 403
         if request.method == 'GET':
                 book = model.BookRead(id)
                 if book is not None:
                         return jsonify(book = book)
                 else:
-                        return jsonify(msg = "No book with this id")
+                        return jsonify(msg = "No book with this id"), 403
 
         elif request.method == 'PATCH':
                 book = model.BookRead(id)
@@ -157,7 +157,7 @@ def book(id):
                         book = model.BookUpdate(book, id)
                         return jsonify(book = book)
                 else:
-                        return jsonify(msg = "No book with this id")
+                        return jsonify(msg = "No book with this id"), 403
         else:
                 model.BookDelete(id)
                 return jsonify(msg = "Deleted")
@@ -184,7 +184,7 @@ def authors():
                         author = model.createAuthor(data)
                         return jsonify(author = author)
                 else:
-                        return jsonify(msg = "Author already in database")
+                        return jsonify(msg = "Author already in database"), 403
 
 @app.route("/author/<id>", methods = [ 'PATCH', 'DELETE'])
 def author(id):
@@ -197,7 +197,7 @@ def author(id):
         if not model.checkIfSessionActive(uuid):
                 return abort(401)     
         if id is None:
-                return jsonify(msg = 'Forgot id')
+                return jsonify(msg = 'Forgot id'), 403
         if request.method == 'PATCH':
                 author = model.AuthorRead(id)
                 if author is not None:
@@ -209,7 +209,7 @@ def author(id):
                         author = model.AuthorUpdate(author,id)
                         return jsonify(author = author)
                 else:
-                        return jsonify(msg = "No author with this id")
+                        return jsonify(msg = "No author with this id"), 403
         else:
                 model.AuthorDelete(id) 
                 return jsonify(msg = "Deleted")
@@ -225,7 +225,7 @@ def favBooks(id):
         if not model.checkIfSessionActive(uuid):
                 return abort(401)  
         if id is None:
-                return jsonify(msg = 'Forgot id')
+                return jsonify(msg = 'Forgot id'), 403
         username = model.getUsernameFromSession(uuid)
         user = model.getUser(username) 
         favBooks = user['favBooks']
@@ -280,11 +280,30 @@ def searchBook(text):
         if not model.checkIfSessionActive(uuid):
                 return abort(401)
         if text is None:
-                return jsonify(msg = "No search query")
+                return jsonify(msg = "No search query"), 403
         if not text:
-                return jsonify(msg = "No search query")
+                return jsonify(msg = "No search query"), 403
         books = model.findBookByAnything(text)
         return jsonify(books = books)        
+
+
+@app.route("/adminAccess", methods = [ 'GET' ])
+def adminAccess():
+        uuid = None
+        if 'Authorization' not in request.headers:
+                return abort(401)
+        uuid = request.headers.get('Authorization')
+        if uuid is None:
+                return abort(401)
+        if not model.checkIfSessionActive(uuid):
+                return abort(401)
+        username = model.getUsernameFromSession(uuid)
+        user = model.getUser(username)
+        if user['security_lvl'] == 'admin':
+                return jsonify(access = True)
+        else:
+                return jsonify(access = False)
+
 
 @app.errorhandler(401)
 def session_not_found(e):
